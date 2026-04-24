@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Nanostrukturalar va Magnitooptika Ilmiy Laboratoriyasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --panel-bg: #1e293b; --lcd-text: #00ff41; --laser-color: #ff0000; --accent: #3b82f6; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        
+        .header { text-align: center; border-bottom: 2px solid var(--accent); margin-bottom: 20px; padding-bottom: 10px; }
+        .header h1 { margin: 0; color: var(--accent); text-transform: uppercase; font-size: 22px; letter-spacing: 1px; }
+
+        .main-grid { display: grid; grid-template-columns: 500px 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
+        
+        /* Professional Qurilmalar Dizayni */
+        .hardware-rack { background: #334155; padding: 20px; border-radius: 15px; border: 4px solid #475569; }
+        .device-unit { background: #1e293b; border: 2px solid #64748b; border-radius: 10px; padding: 15px; margin-bottom: 15px; position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
+        .device-name { position: absolute; top: 5px; right: 12px; font-size: 10px; color: #94a3b8; font-weight: bold; }
+        
+        .lcd-screen { background: #000; border: 2px solid #334155; width: 220px; height: 60px; border-radius: 5px; padding: 10px; color: var(--lcd-text); font-family: 'Courier New', monospace; font-size: 15px; display: flex; align-items: center; box-shadow: 0 0 10px rgba(0,255,65,0.1); }
+        
+        /* Optik Stol (Optical Bench) */
+        .optical-bench { background: #000; height: 180px; border-radius: 10px; margin-top: 20px; position: relative; border: 2px solid #334155; display: flex; align-items: center; padding: 0 20px; }
+        .lazer-box { width: 100px; height: 40px; background: #475569; border-radius: 4px; border-right: 8px solid #94a3b8; position: relative; }
+        .lazer-beam { position: absolute; height: 3px; background: var(--laser-color); box-shadow: 0 0 15px var(--laser-color); top: 50%; left: 108px; width: 0%; transition: width 0.4s ease; z-index: 10; }
+        .sample-cell { width: 80px; height: 100px; border: 4px solid #fbbf24; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .detector { width: 50px; height: 50px; background: #1e293b; border: 2px solid #64748b; border-radius: 50%; }
+
+        /* Grafik va Jadval */
+        .visual-card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
+        .chart-box { height: 350px; }
+        
+        .controls { display: flex; gap: 15px; margin-top: 15px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; font-size: 14px; }
+        .btn-start { background: #10b981; box-shadow: 0 4px #059669; }
+        .btn-start:hover { background: #059669; }
+        .btn-reset { background: #ef4444; box-shadow: 0 4px #dc2626; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th { background: #334155; color: var(--accent); padding: 12px; border: 1px solid #475569; }
+        td { padding: 10px; border: 1px solid #334155; text-align: center; background: #1e293b; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>NANOSTRUKTURALAR VA MAGNITOOPTIKA ILMIY-TADQIQOT LABORATORIYASI</h1>
+    <p style="font-size: 12px; color: #94a3b8; margin: 5px;">O'zbekiston Milliy Universiteti / Fizika Fakulteti</p>
+</div>
+
+<div class="main-grid">
+    <div class="left-column">
+        <div class="hardware-rack">
+            <div class="device-unit">
+                <span class="device-name">RIGOL DG4000 SERIES</span>
+                <div class="lcd-screen" id="genScreen">
+                    CH1: 101.400 kHz<br>AMPL: 5.00 Vpp
+                </div>
+                <div style="margin-top:10px;"><span style="color:#64748b; font-size:9px;">RESONANCE MODE ACTIVE</span></div>
+            </div>
+
+            <div class="device-unit">
+                <span class="device-name">SALUKI SE1022D LOCK-IN</span>
+                <div class="lcd-screen" id="lockScreen" style="color: #60a5fa;">
+                    SIGNAL: 0.000 mV<br>PHASE: 0.00°
+                </div>
+                <div style="margin-top:10px;"><span style="color:#64748b; font-size:9px;">REF: INTERNAL (101.4 kHz)</span></div>
+            </div>
+
+            <div class="optical-bench">
+                <div class="lazer-box"></div>
+                <div class="lazer-beam" id="beamPath"></div>
+                <div class="sample-cell">NANO<br>NAMUNA</div>
+                <div class="detector"></div>
+            </div>
+        </div>
+
+        <div class="visual-card" style="margin-top:20px;">
+            <h3 style="color:var(--accent); margin-top:0;">Nazariy Asos</h3>
+            <p style="font-size: 14px; font-style: italic;">θ = V(λ, T) · B · L</p>
+            <p style="font-size: 14px; font-style: italic;">I = I₀ · cos²(φ + θ)</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" onclick="startLab()">ANALIZNI BOSHLASH</button>
+            <button class="btn btn-reset" onclick="resetLab()">RESET</button>
+        </div>
+    </div>
+
+    <div class="right-column">
+        <div class="visual-card">
+            <div class="chart-box">
+                <canvas id="mainPlot"></canvas>
+            </div>
+        </div>
+
+        <div class="visual-card" style="max-height: 280px; overflow-y: auto;">
+            <table id="protocolTable">
+                <thead>
+                    <tr>
+                        <th>B (mT)</th>
+                        <th>θ (arcmin)</th>
+                        <th>V-Signal (mV)</th>
+                        <th>Intensivlik</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    let running = false;
+
+    function initChart() {
+        const ctx = document.getElementById('mainPlot').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Faradey Gisterezisi θ(B)', data: [], borderColor: '#ef4444', showLine: true, tension: 0.4, yAxisID: 'y' },
+                    { label: 'Optik Intensivlik I(B)', data: [], borderColor: '#3b82f6', showLine: true, tension: 0.4, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Magnit Maydon B (mT)' }, grid: { color: '#334155' } },
+                    y: { position: 'left', title: { display: true, text: 'Aylanish burchagi θ' } },
+                    y1: { position: 'right', title: { display: true, text: 'Intensivlik' }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    async function startLab() {
+        if(running) return;
+        running = true;
+        document.getElementById('beamPath').style.width = '350px';
+
+        let points = [];
+        for(let b=-500; b<=500; b+=50) points.push(b);
+        for(let b=500; b>=-500; b-=50) points.push(b);
+
+        const tableBody = document.querySelector('#protocolTable tbody');
+        tableBody.innerHTML = '';
+
+        for(let i=0; i<points.length; i++) {
+            if(!running) break;
+            let b = points[i];
+            
+            // Rezonans (101.4 kHz) sharoitida gisterezis modeli
+            let lag = (i < points.length/2) ? -25 : 25;
+            let theta = (34 * Math.tanh((b + lag) / 160) + (Math.random()*0.3)).toFixed(2);
+            let intensity = (0.7 * Math.pow(Math.cos(theta * Math.PI / 180), 2) + 0.2).toFixed(3);
+            let v_sig = (Math.abs(theta) * 1.45).toFixed(3);
+
+            // LCD yangilash
+            document.getElementById('lockScreen').innerHTML = `SIGNAL: ${v_sig} mV<br>PHASE: ${(89.5 + Math.random()).toFixed(2)}°`;
+
+            // Grafikni yangilash
+            chart.data.datasets[0].data.push({x: b, y: parseFloat(theta)});
+            chart.data.datasets[1].data.push({x: b, y: parseFloat(intensity)});
+            chart.update('none');
+
+            // Jadvalni yangilash
+            let row = `<tr><td>${b}</td><td>${theta}</td><td>${v_sig}</td><td>${intensity}</td></tr>`;
+            tableBody.insertAdjacentHTML('afterbegin', row);
+
+            await new Promise(r => setTimeout(r, 80));
+        }
+        running = false;
+        document.getElementById('beamPath').style.width = '0';
+    }
+
+    function resetLab() {
+        running = false;
+        chart.data.datasets[0].data = [];
+        chart.data.datasets[1].data = [];
+        chart.update();
+        document.querySelector('#protocolTable tbody').innerHTML = '';
+        document.getElementById('beamPath').style.width = '0';
+        document.getElementById('lockScreen').innerHTML = `SIGNAL: 0.000 mV<br>PHASE: 0.00°`;
+    }
+
+    window.onload = initChart;
+</script>
+</body>
+</html>

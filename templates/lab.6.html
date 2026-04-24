@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Pickering Series - Advanced Spectroscopy Lab</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.1); --neon: #00f2ff; --gold: #ffd700; }
+        body { font-family: 'Segoe UI', sans-serif; background: #020617; color: #f1f5f9; margin: 0; padding: 20px; }
+        
+        .header { text-align: center; padding: 20px; border-bottom: 2px solid var(--neon); margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--neon); letter-spacing: 2px; text-transform: uppercase; }
+
+        .layout { display: grid; grid-template-columns: 500px 1fr; gap: 25px; max-width: 1650px; margin: 0 auto; }
+        
+        /* Qurilmalar stendi */
+        .rack { background: #1e293b; padding: 25px; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .device { background: #0f172a; border: 2px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px; position: relative; }
+        .device-label { position: absolute; top: -10px; left: 20px; background: #1e293b; padding: 0 10px; font-size: 12px; color: var(--gold); font-weight: bold; }
+        
+        .display { font-family: 'Courier New', monospace; color: var(--neon); font-size: 16px; background: #000; padding: 15px; border-radius: 5px; border: 1px solid #1e293b; }
+
+        /* Spektral animatsiya */
+        .bench { height: 180px; background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%); border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
+        .discharge-tube { width: 200px; height: 15px; background: #334155; border-radius: 10px; position: relative; }
+        .plasma { position: absolute; width: 100%; height: 100%; border-radius: 10px; background: linear-gradient(90deg, transparent, #8b5cf6, transparent); opacity: 0; transition: 0.5s; }
+
+        /* Ma'lumotlar */
+        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; }
+        .formula { font-family: "Cambria Math", serif; font-size: 18px; color: #94a3b8; text-align: center; margin: 15px 0; background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid var(--neon); }
+
+        .btn-run { width: 100%; padding: 18px; background: linear-gradient(135deg, #06b6d4, #3b82f6); border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .btn-run:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: center; border: 1px solid #1e293b; font-size: 14px; }
+        th { background: #334155; color: var(--neon); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Geliy ($He^+$) Ioni Spektroskopiyasi: Pikering Seriyasi</h1>
+    <p>Magistratura darajasidagi ilmiy simulyatsiya</p>
+</div>
+
+<div class="layout">
+    <div class="controls-panel">
+        <div class="rack">
+            <div class="device">
+                <span class="device-label">HIGH-RESOLUTION SPECTROMETER</span>
+                <div class="display" id="specOut">Tizim tayyor...<br>Skanerlash: 350 - 700 nm</div>
+            </div>
+
+            <div class="bench" id="bench">
+                <div class="discharge-tube">
+                    <div class="plasma" id="plasma"></div>
+                </div>
+                <div style="position:absolute; bottom:10px; color:#475569; font-size:10px;">GELIY RAZRYAD TRUBKASI</div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h4 style="margin:0; color:var(--gold);">Energetik Sathlar</h4>
+                <div class="formula">
+                    E<sub>n</sub> = -Z² · R<sub>H</sub> / n²<br>
+                    <small>(Z=2 geliy uchun)</small>
+                </div>
+                <p style="font-size: 13px; color: #94a3b8;">
+                    Pikering seriyasi o'tish sharti: <b>n → 4</b><br>
+                    To'lqin uzunligi formulasi: <br>
+                    1/λ = 4R<sub>H</sub> [1/4² - 1/n²]
+                </p>
+            </div>
+
+            <button class="btn-run" onclick="runExperiment()" style="margin-top:20px;">EKSPERIMENTNI BOSHLASH</button>
+        </div>
+    </div>
+
+    <div class="data-panel">
+        <div class="card">
+            <h3 style="margin-top:0;">Spektral Intensivlik va Rezonans</h3>
+            <div style="height: 350px;">
+                <canvas id="specChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>📊 O'lchov Natijalari (Protokol)</h3>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>O'tish (n → 4)</th>
+                        <th>λ_nazariy (nm)</th>
+                        <th>λ_tajriba (nm)</th>
+                        <th>Energiya ΔE (eV)</th>
+                        <th>Xatolik (%)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    const Rh = 1.097373e7; // Ridberg doimiysi
+    const hc = 1240; // eV*nm (Plank doimiysi * yorug'lik tezligi)
+
+    function init() {
+        const ctx = document.getElementById('specChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Intensivlik (A.U.)',
+                    data: [],
+                    borderColor: '#00f2ff',
+                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: 'To\'lqin uzunligi λ (nm)', color: '#94a3b8' } },
+                    y: { display: false }
+                }
+            }
+        });
+    }
+
+    async function runExperiment() {
+        const plasma = document.getElementById('plasma');
+        const specOut = document.getElementById('specOut');
+        const tbody = document.querySelector('#dataTable tbody');
+        
+        plasma.style.opacity = "1";
+        specOut.innerHTML = "Skanerlanmoqda...<br>Plazma barqaror.";
+        tbody.innerHTML = "";
+        chart.data.datasets[0].data = [];
+
+        // Pickering seriyasi uchun n = 5 dan 12 gacha
+        const n_starts = [5, 6, 7, 8, 9, 10, 11, 12];
+        
+        for (let n of n_starts) {
+            // Ridberg formulasi (He+ uchun Z=2)
+            // 1/λ = 4 * Rh * (1/16 - 1/n²)
+            let invLambda = 4 * Rh * (1/16 - 1/(n*n));
+            let lambda_nm = (1 / invLambda) * 1e9;
+            
+            // Eksperimental shovqin (Magistratura darajasi uchun)
+            let noise = (Math.random() - 0.5) * 0.15;
+            let lambda_exp = lambda_nm + noise;
+            
+            // Energiya farqi ΔE = hc / λ
+            let dE = hc / lambda_nm;
+            let error = Math.abs((lambda_nm - lambda_exp)/lambda_nm * 100).toFixed(4);
+
+            // Grafikni simulyatsiya qilish (Lorents cho'qqisi)
+            for(let x = lambda_nm-5; x <= lambda_nm+5; x += 0.5) {
+                let intensity = 100 / (1 + Math.pow((x - lambda_nm)/0.8, 2));
+                chart.data.datasets[0].data.push({x: x, y: intensity});
+            }
+            chart.update('none');
+
+            // Jadvalga natija qo'shish
+            let row = `<tr>
+                <td>${n} → 4</td>
+                <td>${lambda_nm.toFixed(3)}</td>
+                <td>${lambda_exp.toFixed(3)}</td>
+                <td>${dE.toFixed(4)}</td>
+                <td>${error}</td>
+            </tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+            
+            await new Promise(r => setTimeout(r, 500));
+        }
+
+        specOut.innerHTML = "Analiz yakunlandi.<br>Pikering seriyasi aniqlandi.";
+        plasma.style.opacity = "0.3";
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>

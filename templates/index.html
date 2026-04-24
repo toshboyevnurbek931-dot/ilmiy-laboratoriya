@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>NYEM Spektroskopiyasi | Lab-4 Simulyatsiyasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --main-bg: #0f172a; --panel: #1e293b; --neon-blue: #38bdf8; --neon-green: #4ade80; }
+        body { font-family: 'Inter', sans-serif; background: var(--main-bg); color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .card { background: var(--panel); border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+        
+        /* Qurilma sxemasi */
+        .setup-viz { position: relative; height: 200px; background: #000; border-radius: 8px; margin-bottom: 15px; overflow: hidden; border: 2px solid #334155; }
+        .source { position: absolute; left: 10px; top: 80px; width: 40px; height: 40px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff; }
+        .monochromator { position: absolute; left: 80px; top: 70px; width: 60px; height: 60px; background: #475569; border: 1px solid #94a3b8; text-align: center; font-size: 10px; padding-top: 20px; }
+        .sample { position: absolute; left: 180px; top: 75px; width: 30px; height: 50px; background: #4ade80; border: 1px solid #fff; box-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+        .beam { position: absolute; height: 3px; top: 100px; background: linear-gradient(90deg, #fff, #38bdf8); transition: 0.3s; }
+        
+        .control-panel select, .control-panel button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-run { background: var(--neon-green); border: none; color: #064e3b; }
+        .btn-run:hover { background: #22c55e; }
+        
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .results-table th, .results-table td { border-bottom: 1px solid #334155; padding: 10px; text-align: center; }
+        .formula-box { background: #000; padding: 10px; border-radius: 6px; font-family: monospace; color: var(--neon-blue); font-size: 12px; margin-top: 10px; border-left: 3px solid var(--neon-blue); }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align: center; color: var(--neon-blue);">NYEM Birikmalarining LUS va Yutilish Spektrlarini Tadqiq Etish</h2>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="card">
+            <h3>🔬 Eksperiment O'rnatmasi</h3>
+            <div class="setup-viz">
+                <div class="source" title="DDS-30 Lampasi"></div>
+                <div class="monochromator">SF-46</div>
+                <div id="beamLine" class="beam" style="left: 50px; width: 0;"></div>
+                <div class="sample" id="sampleBox" title="YAG:Tb3+"></div>
+                <div id="detBeam" class="beam" style="left: 210px; width: 0; background: var(--neon-green);"></div>
+            </div>
+            
+            <div class="control-panel">
+                <label>To'lqin uzunligi diapazoni:</label>
+                <select id="range">
+                    <option value="uv">UV (200-400 nm)</option>
+                    <option value="vis">Visible (400-700 nm)</option>
+                </select>
+                <button class="btn-run" onclick="runExperiment()">SKANERLASHNI BOSHLASH</button>
+            </div>
+
+            <div class="formula-box">
+                I_lum = γ * I_uv * (1 - e^-αl) <br>
+                f ~ ∫ α(ν) dν [cite: 11]
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>📋 O'lchov Ma'lumotlari</h3>
+            <table class="results-table">
+                <thead>
+                    <tr><th>λ (nm)</th><th>O'tish turi</th><th>I (nis.b)</th></tr>
+                </thead>
+                <tbody id="dataBody">
+                    <tr><td colspan="3">Ma'lumotlar yo'q</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="card" style="height: 550px;">
+            <canvas id="spectrumChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    const ctx = document.getElementById('spectrumChart').getContext('2d');
+
+    function initChart() {
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'LUS (Uyg\'otish Spektri)',
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                    fill: true,
+                    data: [],
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'linear', min: 200, max: 400, title: { display: true, text: 'λ (nm)', color: '#fff' } },
+                    y: { min: 0, max: 1.2, title: { display: true, text: 'Intensivlik I/I0', color: '#fff' } }
+                }
+            }
+        });
+    }
+
+    async function runExperiment() {
+        const beam = document.getElementById('beamLine');
+        const detBeam = document.getElementById('detBeam');
+        const table = document.getElementById('dataBody');
+        
+        // Animatsiya start
+        beam.style.width = '130px';
+        table.innerHTML = '<tr><td colspan="3">Skanerlanmoqda...</td></tr>';
+        
+        const spectrumData = [];
+        // Tb3+ xarakterli cho'qqilari simulyatsiyasi (229nm va 271nm)
+        for (let l = 200; l <= 400; l += 2) {
+            let intensity = 0.05 + Math.random() * 0.02; // Shovqin
+            intensity += 0.8 * Math.exp(-Math.pow(l - 271, 2) / 150); // 7D o'tishi
+            intensity += 0.5 * Math.exp(-Math.pow(l - 229, 2) / 100); // e_g o'tishi
+            spectrumData.push({ x: l, y: intensity });
+        }
+
+        // Grafikni chizish (asta-sekin)
+        chart.data.datasets[0].data = [];
+        for (let i = 0; i < spectrumData.length; i++) {
+            chart.data.datasets[0].data.push(spectrumData[i]);
+            if (i % 5 === 0) chart.update('none');
+            await new Promise(r => setTimeout(r, 20));
+        }
+        chart.update();
+
+        detBeam.style.width = '100px';
+        
+        // Jadvalni to'ldirish
+        table.innerHTML = `
+            <tr><td>229</td><td>4f-5d (e_g)</td><td>0.52</td></tr>
+            <tr><td>271</td><td>4f-5d (7D)</td><td>0.84</td></tr>
+            <tr><td>312</td><td>4f-4f (taqiqlangan)</td><td>0.08</td></tr>
+        `;
+    }
+
+    window.onload = initChart;
+</script>
+</body>
+</html>

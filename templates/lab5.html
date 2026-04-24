@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Друде усули: Кучли ютувчи муҳитлар оптик доимийлари</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --panel: #1e293b; --accent: #38bdf8; --laser: #ff0000; --gold: #fbbf24; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: #f1f5f9; margin: 0; padding: 20px; }
+        
+        .header { text-align: center; border-bottom: 2px solid var(--accent); margin-bottom: 25px; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 22px; color: var(--accent); text-transform: uppercase; }
+
+        .lab-grid { display: grid; grid-template-columns: 550px 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
+        
+        /* Экспериментал қурилма */
+        .setup-card { background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid #334155; position: relative; }
+        .optical-bench { height: 250px; background: #020617; border-radius: 10px; position: relative; margin-top: 20px; border: 2px solid #475569; overflow: hidden; }
+        
+        /* Оптик элементлар */
+        .laser-source { position: absolute; left: 10px; top: 50px; width: 60px; height: 30px; background: #475569; border-radius: 3px; }
+        .polarizer { position: absolute; left: 100px; top: 40px; width: 10px; height: 50px; background: #94a3b8; border: 1px solid white; }
+        .sample-holder { position: absolute; left: 230px; top: 120px; width: 80px; height: 10px; background: #64748b; transform: rotate(0deg); }
+        .analyzer { position: absolute; left: 400px; top: 40px; width: 10px; height: 50px; background: #94a3b8; border: 1px solid white; }
+        
+        .beam { position: absolute; height: 2px; background: var(--laser); box-shadow: 0 0 8px var(--laser); z-index: 5; opacity: 0; transition: opacity 0.3s; }
+
+        /* Натижалар ва график */
+        .data-card { background: var(--panel); border-radius: 15px; padding: 20px; border: 1px solid #334155; }
+        .formula-box { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid var(--gold); margin-bottom: 15px; font-size: 14px; color: #94a3b8; }
+        
+        .control-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); }
+        
+        .btn-run { width: 100%; padding: 15px; background: #0284c7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-run:hover { background: #0369a1; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { padding: 10px; text-align: center; border: 1px solid #334155; }
+        th { background: #0f172a; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Друде усули: Никель феррит-шпинели оптик доимийларини аниқлаш</h1>
+    <p>№ 2 Лаборатория иши — Металлоптика ва Френель формулалари</p>
+</div>
+
+<div class="lab-grid">
+    <div class="left-panel">
+        <div class="setup-card">
+            <h3 style="margin-top:0; color:var(--gold);">Экспериментал қурилма схемаси</h3>
+            <div class="optical-bench" id="bench">
+                <div class="laser-source"></div>
+                <div class="polarizer"></div>
+                <div class="sample-holder" id="sample"></div>
+                <div class="analyzer"></div>
+                <div id="beamIn" class="beam"></div>
+                <div id="beamOut" class="beam"></div>
+            </div>
+
+            <div class="control-group">
+                <div>
+                    <label>Тушиш бурчаги, φ: <span id="valPhi">70</span>°</label>
+                    <input type="range" id="phiRange" min="45" max="85" value="70">
+                </div>
+                <div>
+                    <label>Намуна: <b>NiFe₂O₄ (Феррит)</b></label>
+                    <div style="font-size: 11px; color: #64748b;">Кучли ютувчи муҳит</div>
+                </div>
+            </div>
+            
+            <button class="btn-run" onclick="runExperiment()">ЎЛЧОВНИ АМАЛГА ОШИРИШ</button>
+        </div>
+
+        <div class="data-card" style="margin-top: 20px;">
+            <h3>Математик модель (Друде)</h3>
+            <div class="formula-box">
+                ρ = tan(ψ) · e<sup>iΔ</sup> = R<sub>p</sub> / R<sub>s</sub> <br>
+                n² - κ² = sin²φ [1 + tan²φ · cos(2ψ) / (1 + sin(2ψ)cosΔ)²]
+            </div>
+            <p style="font-size: 12px;">Френель формулалари асосида акс этган нурнинг p- ва s- ташкил этувчилари фазалар фарқи (Δ) ва амплитудалар нисбати (ψ) ҳисобланади.</p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="data-card">
+            <h3 style="margin-top:0;">Оптик доимийлар графиги</h3>
+            <div style="height: 300px;">
+                <canvas id="opticsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="data-card" style="margin-top: 20px;">
+            <h3>📊 Натижалар жадвали</h3>
+            <table id="resTable">
+                <thead>
+                    <tr>
+                        <th>φ (°)</th>
+                        <th>ψ (°)</th>
+                        <th>Δ (°)</th>
+                        <th>n (Синиш)</th>
+                        <th>κ (Ютиш)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    function initChart() {
+        const ctx = document.getElementById('opticsChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'n (Синиш кўрсаткичи)', borderColor: '#38bdf8', data: [], tension: 0.3 },
+                    { label: 'κ (Ютиш коэффициенти)', borderColor: '#fbbf24', data: [], tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: {display: true, text: 'Бурчак φ'} } } }
+        });
+    }
+
+    function runExperiment() {
+        const phi = parseFloat(document.getElementById('phiRange').value);
+        const phiRad = phi * Math.PI / 180;
+        
+        // Нур анимацияси
+        const bIn = document.getElementById('beamIn');
+        const bOut = document.getElementById('beamOut');
+        
+        bIn.style.opacity = 1;
+        bIn.style.width = "200px";
+        bIn.style.transform = `rotate(${phi/2}deg)`;
+        bIn.style.left = "60px"; bIn.style.top = "65px";
+
+        setTimeout(() => {
+            bOut.style.opacity = 1;
+            bOut.style.width = "200px";
+            bOut.style.transform = `rotate(-${phi/2}deg)`;
+            bOut.style.left = "260px"; bOut.style.top = "120px";
+            calculateResults(phi);
+        }, 500);
+    }
+
+    function calculateResults(phi) {
+        // NiFe2O4 учун типик қийматлар (имитация)
+        // Друде тенгламаларининг соддалаштирилган илмий модели
+        let n_base = 2.45;
+        let k_base = 0.65;
+        
+        // Эллипсометрик параметрлар (ψ ва Δ)
+        let psi = (20 + (phi-45)*0.5 + Math.random()).toFixed(2);
+        let delta = (120 - (phi-45)*1.2 + Math.random()).toFixed(2);
+        
+        // Ҳисобланган доимийлар
+        let n_calc = (n_base + (Math.random()-0.5)*0.05).toFixed(3);
+        let k_calc = (k_base + (Math.random()-0.5)*0.03).toFixed(3);
+
+        // Жадвални янгилаш
+        const row = `<tr>
+            <td>${phi}</td>
+            <td>${psi}</td>
+            <td>${delta}</td>
+            <td>${n_calc}</td>
+            <td>${k_calc}</td>
+        </tr>`;
+        document.querySelector('#resTable tbody').insertAdjacentHTML('afterbegin', row);
+
+        // Графикни янгилаш
+        chart.data.labels.push(phi);
+        chart.data.datasets[0].data.push(n_calc);
+        chart.data.datasets[1].data.push(k_calc);
+        chart.update();
+    }
+
+    document.getElementById('phiRange').oninput = function() {
+        document.getElementById('valPhi').innerText = this.value;
+    };
+
+    window.onload = initChart;
+</script>
+</body>
+</html>
