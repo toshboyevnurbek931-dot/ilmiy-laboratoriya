@@ -2,113 +2,156 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Onlayn Laboratoriya Markazi</title>
+    <title>Ilmiy Fizika Laboratoriyalari</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        :root {
+            --primary-bg: #020617;
+            --accent-blue: #38bdf8;
+            --gold: #fbbf24;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            padding: 0;
-            /* Rasm original ranglarida, tiniq va markazda ochiladi */
-            background-image: url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80');
-            background-size: cover; /* Rasmni ekran bo'ylab to'liq yoyadi */
-            background-position: center; /* Markaziy qismini ko'rsatadi */
-            background-attachment: fixed; /* Ekran aylanganda rasm qimirlamaydi */
-            background-repeat: no-repeat;
-            
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+            display: flex;
+            background: url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
         }
 
-        /* Sarlavha ustidagi qora soya (O'qishga oson bo'lishi uchun) */
-        .overlay {
-            width: 100%;
-            min-height: 100vh;
-            background: rgba(15, 23, 42, 0.4); /* Rasmni faqat 40% qoraytiradi */
+        /* Chap tomondagi Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            border-right: 1px solid var(--accent-blue);
+            z-index: 100;
+        }
+
+        .profile-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--gold);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-box h4 { color: var(--gold); margin: 0 0 10px 0; }
+        .profile-box p { color: #fff; font-size: 0.9rem; margin: 5px 0; }
+        .contact-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: var(--gold);
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Markaziy qism */
+        .main-content {
+            margin-left: 280px; /* Sidebar kengligi uchun joy */
+            width: calc(100% - 280px);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 50px;
+            background: rgba(2, 6, 23, 0.4);
         }
 
         h1 {
-            color: #ffffff;
-            margin-bottom: 40px;
-            text-shadow: 2px 4px 10px rgba(0,0,0,0.7);
-            font-size: clamp(1.5rem, 5vw, 3rem); /* Ekran o'lchamiga qarab o'zgaradi */
-            font-weight: 800;
+            color: #fff;
             text-transform: uppercase;
             letter-spacing: 3px;
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.8);
+            margin-bottom: 40px;
             text-align: center;
         }
 
-        .menu-container { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px; 
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
             width: 90%;
             max-width: 1200px;
             padding-bottom: 50px;
         }
 
-        .lab-card { 
-            background: rgba(255, 255, 255, 0.1); /* Shaffof shisha effekti */
-            backdrop-filter: blur(15px); /* Orqa fonni chiroyli xiralashtirish */
-            -webkit-backdrop-filter: blur(15px);
-            padding: 35px 20px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            text-decoration: none; 
-            color: #ffffff; 
-            transition: all 0.3s ease; 
+        .lab-card {
+            background: var(--glass);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            text-decoration: none;
+            color: #fff;
             text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: 0.3s;
         }
 
-        .lab-card:hover { 
-            background: rgba(56, 189, 248, 0.9); /* Neon ko'k rang */
-            transform: translateY(-10px); 
-            box-shadow: 0 15px 45px rgba(56, 189, 248, 0.4);
+        .lab-card:hover {
+            transform: translateY(-5px);
+            background: var(--accent-blue);
+            color: #000;
         }
 
-        .lab-card h3 { 
-            margin: 0 0 10px 0; 
-            font-size: 1.4rem; 
-            color: #ffd700; /* Oltin rang sarlavha uchun */
-        }
-        
-        .lab-card:hover h3 { color: #ffffff; }
-
-        .lab-card p { 
-            margin: 0;
-            opacity: 0.9; 
-            font-size: 0.95rem; 
-            font-weight: 500;
-        }
+        .lab-card span { font-weight: bold; display: block; margin-bottom: 5px; }
+        .lab-card small { opacity: 0.8; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <div class="overlay">
-        <h1>Mening Raqamli Laboratoriyalarim</h1>
-        <div class="menu-container">
-            <a href="/lab3" class="lab-card">
-                <h3>3-Laboratoriya</h3>
-                <p>Faradey effekti</p>
-            </a>
-            <a href="/lab4" class="lab-card">
-                <h3>4-Laboratoriya</h3>
-                <p>NYEM Uyg'otish Spektri</p>
-            </a>
-            <a href="/lab5" class="lab-card">
-                <h3>5-Laboratoriya</h3>
-                <p>Pikering Seriyasi</p>
-            </a>
-            <a href="/lab6" class="lab-card">
-                <h3>6-Laboratoriya</h3>
-                <p>Nodir yer metallari</p>
-            </a>
+
+    <!-- Chap burchakdagi profil -->
+    <div class="sidebar">
+        <div class="profile-box">
+            <h4>Dasturchi</h4>
+            <p><strong>Nurbek</strong></p>
+            <p>📞 +998993991630</p>
+            <a href="tel:+998993991630" class="contact-link">BOG'LANISH</a>
+        </div>
+        <div style="color: var(--accent-blue); font-size: 0.8rem; text-align: center;">
+            Tizim versiyasi: 2.0<br>
+            © 2026 Ilmiy Lab
         </div>
     </div>
+
+    <!-- Asosiy menyu -->
+    <div class="main-content">
+        <h1>Ilmiy Fizika Laboratoryalari</h1>
+        
+        <div class="lab-grid">
+            <!-- 30 ta laboratoriya yaratish -->
+            <a href="/lab1" class="lab-card"><span>1-Laboratoriya</span><small>Mexanika</small></a>
+            <a href="/lab2" class="lab-card"><span>2-Laboratoriya</span><small>Termodinamika</small></a>
+            <a href="/lab3" class="lab-card"><span>3-Laboratoriya</span><small>Faradey effekti</small></a>
+            <a href="/lab4" class="lab-card"><span>4-Laboratoriya</span><small>NYEM Spektri</small></a>
+            <a href="/lab5" class="lab-card"><span>5-Laboratoriya</span><small>Pikering Seriyasi</small></a>
+            <a href="/lab6" class="lab-card"><span>6-Laboratoriya</span><small>Nodir yer metallari</small></a>
+            
+            <!-- Qolgan laboratoriyalar uchun namunaviy joylar (7 dan 30 gacha) -->
+            <script>
+                for(let i=7; i<=30; i++) {
+                    document.write(`
+                        <a href="/lab${i}" class="lab-card">
+                            <span>${i}-Laboratoriya</span>
+                            <small>Mavzu kiritilmagan</small>
+                        </a>
+                    `);
+                }
+            </script>
+        </div>
+    </div>
+
 </body>
 </html>

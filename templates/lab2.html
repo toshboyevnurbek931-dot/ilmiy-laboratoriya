@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Agilent 7890A - Gaz Xromatografiyasi Laboratoriyasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --agilent-blue: #00548b;
+            --panel-bg: #f3f4f6;
+            --lcd-green: #a3e635;
+            --dark-steel: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            background-color: #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Yuqori Panel */
+        .header {
+            background: var(--agilent-blue);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Asosiy Ishchi Maydon */
+        .main-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* Boshqaruv Paneli (Sidebar) */
+        .control-panel {
+            background: var(--panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #d1d5db;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .lcd-display {
+            background: #000;
+            color: var(--lcd-green);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 3px solid #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .setting-group {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        label { font-weight: bold; font-size: 12px; color: var(--dark-steel); display: block; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+
+        .btn-start {
+            background: #16a34a;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-start:hover { background: #15803d; transform: scale(1.02); }
+
+        /* Grafik va Natijalar */
+        .view-panel {
+            display: grid;
+            grid-template-rows: 1fr 250px;
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #d1d5db;
+            position: relative;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #d1d5db;
+            overflow-y: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: var(--agilent-blue); color: white; padding: 10px; position: sticky; top: 0; }
+        td { border: 1px solid #e5e7eb; padding: 8px; text-align: center; }
+        tr:nth-child(even) { background: #f9fafb; }
+
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            background: #ef4444;
+        }
+        .status-active { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div style="display: flex; align-items: center;">
+        <div class="status-led" id="statusLed"></div>
+        <h2 style="margin: 0; font-size: 18px;">Agilent Technologies 7890A GC System</h2>
+    </div>
+    <div style="font-size: 14px; opacity: 0.8;">Operator: Toshboyev Nurbek | <span id="clock">00:00:00</span></div>
+</div>
+
+<div class="main-container">
+    <div class="control-panel">
+        <div class="lcd-display" id="monitor">
+            STATUS: TAYYOR<br>
+            OVEN: 90.0°C<br>
+            DETECTOR (FID): OFF<br>
+            CARRIER (He): 10 psi
+        </div>
+
+        <div class="setting-group">
+            <label>NAMUNA (MIX C1-C6):</label>
+            <select id="sampleType">
+                <option value="hydrocarbons">C1-C6 Uglevodorod Aralashmasi</option>
+                <option value="natural_gas">Tabiiy Gaz Namuna</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>TASHUVCHI GAZ (CARRIER):</label>
+            <select id="carrierGas">
+                <option value="He">Geli (He)</option>
+                <option value="N2">Azot (N2)</option>
+                <option value="H2">Vodorod (H2)</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>DETEKTOR SOZLAMALARI (FID):</label>
+            <div style="font-size: 11px;">Temp: 250°C | H2 Flow: 30ml/min</div>
+            <input type="range" min="150" max="300" value="250" id="detTemp">
+        </div>
+
+        <div class="setting-group">
+            <label>INYEKTSIYA HAJMI (µL):</label>
+            <input type="number" step="0.1" value="1.0" min="0.1" max="2.0">
+        </div>
+
+        <button class="btn-start" onclick="startGC()">INYEKTSIYA QILISH (RUN)</button>
+        <button class="btn-start" style="background: #6b7280;" onclick="resetGC()">RESET</button>
+    </div>
+
+    <div class="view-panel">
+        <div class="chart-container">
+            <canvas id="chromatogram"></canvas>
+            <div id="loadingOverlay" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,0.8); padding:20px; border-radius:10px; border:1px solid #ccc;">
+                <b>XROMATOGRAFIYA JARAYONI...</b>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <h4 style="margin: 0 0 10px 0; color: var(--agilent-blue);">Tahlil Natijalari (Qualitative & Quantitative)</h4>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Komponent</th>
+                        <th>Retention Time (min)</th>
+                        <th>Area (pA*s)</th>
+                        <th>Miqdor (%)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    let isRunning = false;
+    const ctx = document.getElementById('chromatogram').getContext('2d');
+
+    // Real ilmiy ma'lumotlar (Rasmda ko'rsatilgan C1-C6 testi asosida)
+    const componentsData = [
+        { name: "Methane", tr: 0.850, area: 6979.9, color: '#ef4444' },
+        { name: "Ethane", tr: 2.866, area: 13623.7, color: '#f59e0b' },
+        { name: "Propane", tr: 5.071, area: 22053.9, color: '#10b981' },
+        { name: "Butane", tr: 8.200, area: 26456.5, color: '#3b82f6' },
+        { name: "Pentane", tr: 10.824, area: 33053.9, color: '#8b5cf6' },
+        { name: "Hexane", tr: 12.916, area: 39419.0, color: '#ec4899' }
+    ];
+
+    function initChart() {
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 150}, (_, i) => (i * 0.1).toFixed(1)),
+                datasets: [{
+                    label: 'FID Signal (pA)',
+                    data: new Array(150).fill(0),
+                    borderColor: '#000',
+                    borderWidth: 1.5,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Vaqt (minut)' }, min: 0, max: 15 },
+                    y: { title: { display: true, text: 'Signal (pA)' }, min: -10, max: 200 }
+                },
+                animation: { duration: 0 }
+            }
+        });
+    }
+
+    async function startGC() {
+        if(isRunning) return;
+        isRunning = true;
+        
+        document.getElementById('statusLed').classList.add('status-active');
+        document.getElementById('monitor').innerHTML = "STATUS: RUNNING...<br>OVEN: 90.0°C (STABLE)<br>FID: ACTIVE<br>SAMP: INJECTED";
+        
+        const dataPoints = new Array(150).fill(0).map(() => Math.random() * 2); // Baza shovqini
+        const tableBody = document.querySelector('#resultsTable tbody');
+        tableBody.innerHTML = "";
+
+        // Har bir komponent uchun cho'qqi (Peak) yasash
+        for(let i = 0; i < 150; i++) {
+            let currentTime = i * 0.1;
+            
+            componentsData.forEach(comp => {
+                // Lorents/Gauss taqsimoti orqali cho'qqi hosil qilish
+                let peak = 180 * Math.exp(-Math.pow(currentTime - comp.tr, 2) / 0.05);
+                dataPoints[i] += peak;
+                
+                // Agar cho'qqi vaqti kelsa jadvalga qo'shish
+                if(Math.abs(currentTime - comp.tr) < 0.05) {
+                    addTableRow(comp);
+                }
+            });
+
+            chart.data.datasets[0].data = dataPoints.slice(0, i + 1);
+            chart.update('none');
+            
+            // Real vaqt simulyatsiyasi (tezyashtirilgan)
+            await new Promise(r => setTimeout(r, 50));
+            
+            if(i % 10 == 0) {
+                document.getElementById('monitor').innerHTML = `STATUS: ANALYZING...<br>TIME: ${currentTime.toFixed(1)} min<br>FID: ${dataPoints[i].toFixed(2)} pA`;
+            }
+        }
+
+        isRunning = false;
+        document.getElementById('statusLed').classList.remove('status-active');
+        document.getElementById('monitor').innerHTML = "STATUS: FINISHED<br>REPORT GENERATED<br>FID: STANDBY";
+    }
+
+    function addTableRow(comp) {
+        const tableBody = document.querySelector('#resultsTable tbody');
+        const totalArea = componentsData.reduce((a, b) => a + b.area, 0);
+        const percent = ((comp.area / totalArea) * 100).toFixed(2);
+        
+        const row = `<tr>
+            <td style="color:${comp.color}; font-weight:bold;">${comp.name}</td>
+            <td>${comp.tr.toFixed(3)}</td>
+            <td>${comp.area.toLocaleString()}</td>
+            <td>${percent}%</td>
+            <td style="color:green;">✅ OK</td>
+        </tr>`;
+        tableBody.insertAdjacentHTML('beforeend', row);
+    }
+
+    function resetGC() {
+        location.reload();
+    }
+
+    // Soat
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString();
+    }, 1000);
+
+    window.onload = initChart;
+</script>
+
+</body>
+</html>
