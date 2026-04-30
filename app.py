@@ -1,36 +1,48 @@
-from flask import Flask, render_template, abort
+from flask import Flask, render_template, request, jsonify, abort
 import os
 
 app = Flask(__name__)
 
+# Laboratoriya ma'lumotlari - barcha chalkashliklarni shu erda to'g'irlaymiz
+LABS = {
+    1: "Magnito-Optik Kerr effekti",
+    2: "Gaz Xromatografiyasi",
+    3: "Faradey effekti",
+    4: "NYEM Spektri",
+    5: "Pikering Seriyasi",
+    6: "Nodir yer metallari",
+    7: "Atom kuch mikroskopiyasi (AFM)",
+    # Qolganlari uchun avtomatik "Mavzu kiritilmagan" yoziladi
+}
+
 @app.route('/')
 def home():
-    """Asosiy menyuni yuklash"""
-    return render_template('menu.html')
+    # 1 dan 30 gacha laboratoriyalar ro'yxatini shakllantiramiz
+    lab_list = []
+    for i in range(1, 31):
+        lab_list.append({
+            "id": i,
+            "title": LABS.get(i, "Mavzu kiritilmagan")
+        })
+    return render_template('menu.html', labs=lab_list)
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    full_name = data.get('fullname')
+    phone = data.get('phone')
+    # Bu yerda ma'lumotlarni bazaga saqlash mumkin
+    print(f"Yangi foydalanuvchi: {full_name}, Tel: {phone}")
+    return jsonify({"status": "success", "message": f"Rahmat, {full_name}!"})
 
 @app.route('/lab<int:lab_id>')
 def lab(lab_id):
-    """1 dan 30 gacha bo'lgan barcha laboratoriyalarni yuklash"""
     if 1 <= lab_id <= 30:
-        # Maxsus holat: lab4 -> index.html (Sizning kodingizdagi mantiq bo'yicha)
-        target_template = 'index.html' if lab_id == 4 else f'lab{lab_id}.html'
-        
-        # Fayl mavjudligini tekshirish
-        template_path = os.path.join(app.template_folder, target_template)
-        
-        if os.path.exists(template_path):
-            return render_template(target_template)
-        else:
-            # Fayl yo'q bo'lsa, xatolik o'rniga chiroyli xabar
-            return f"""
-            <body style="background:#020617; color:white; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column;">
-                <h1 style="color:#4ade80;">{lab_id}-Laboratoriya</h1>
-                <p>Ushbu laboratoriya ishi ustida ish olib borilmoqda.</p>
-                <a href="/" style="color:#38bdf8; text-decoration:none;">← Menyoga qaytish</a>
-            </body>
-            """
-    else:
-        abort(404)
+        template_name = 'index.html' if lab_id == 4 else f'lab{lab_id}.html'
+        if os.path.exists(os.path.join(app.template_folder, template_name)):
+            return render_template(template_name)
+        return f"<h1>{lab_id}-Laboratoriya tayyorlanmoqda...</h1>"
+    abort(404)
 
 if __name__ == '__main__':
     app.run(debug=True)

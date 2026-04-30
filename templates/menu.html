@@ -6,180 +6,124 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-bg: #020617;
-            --accent-green: #4ade80; /* Och yashil */
-            --accent-blue: #38bdf8;  /* Och ko'k */
-            --glass: rgba(255, 255, 255, 0.08);
-            --sidebar-bg: rgba(15, 23, 42, 0.98);
+            --primary: #020617;
+            --accent: #4ade80; /* Och yashil */
+            --blue: #38bdf8;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         body {
             font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            display: flex;
-            background: url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
-            background-size: cover;
-            min-height: 100vh;
-            color: white;
+            margin: 0; background: #020617 url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg') no-repeat center center fixed;
+            background-size: cover; color: white; display: flex;
         }
 
-        /* Sidebar Dizayni */
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            backdrop-filter: blur(15px);
-            height: 100vh;
-            position: fixed;
-            left: 0; top: 0;
-            display: flex;
-            flex-direction: column;
-            padding: 25px;
-            border-right: 1px solid var(--accent-green);
-            z-index: 100;
+            width: 280px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
+            height: 100vh; position: fixed; border-right: 1px solid var(--accent);
+            display: flex; flex-direction: column; padding: 25px; z-index: 1000;
         }
 
-        /* User Profile qismi */
-        .user-section {
-            text-align: center;
-            padding-bottom: 25px;
-            border-bottom: 1px solid rgba(74, 222, 128, 0.2);
-            margin-bottom: 25px;
-        }
-
-        .user-icon {
-            font-size: 50px;
-            color: var(--accent-green);
-            margin-bottom: 10px;
-        }
-
-        .btn-reg {
-            display: block;
-            background: var(--accent-green);
-            color: #064e3b;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: 0.3s;
-        }
-
-        .btn-reg:hover { background: var(--accent-blue); color: #fff; }
-
-        /* Dasturchi ma'lumotlari */
-        .dev-info {
-            margin-top: auto;
-            background: rgba(74, 222, 128, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 3px solid var(--accent-green);
-        }
-
-        .dev-info h5 { margin: 0 0 8px 0; color: var(--accent-green); }
-        .dev-info p { font-size: 0.85rem; margin: 4px 0; color: #cbd5e1; }
+        .user-box { text-align: center; margin-bottom: 30px; border-bottom: 1px solid rgba(74, 222, 128, 0.2); padding-bottom: 20px; }
+        .user-icon { font-size: 60px; color: var(--accent); margin-bottom: 15px; }
         
-        .contact-btn {
-            display: inline-block;
-            margin-top: 8px;
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.8rem;
+        .reg-btn {
+            background: var(--accent); color: #064e3b; border: none; padding: 12px;
+            width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
+        .reg-btn:hover { background: var(--blue); color: white; }
 
-        /* Markaziy qism */
-        .main-content {
-            margin-left: 260px;
-            width: calc(100% - 260px);
-            padding: 40px;
-            background: rgba(2, 6, 23, 0.6);
-            min-height: 100vh;
-        }
-
-        h1 {
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 50px;
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-        }
-
-        .lab-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-        }
+        /* Main Content */
+        .main-content { margin-left: 280px; width: 100%; padding: 40px; background: rgba(2, 6, 23, 0.7); min-height: 100vh; }
+        .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 
         .lab-card {
-            background: var(--glass);
-            border: 1px solid rgba(74, 222, 128, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            text-decoration: none;
-            color: white;
-            transition: 0.4s;
-            text-align: center;
+            background: var(--glass); border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 20px; border-radius: 15px; text-decoration: none; color: white;
+            transition: 0.3s; text-align: center; backdrop-filter: blur(5px);
+        }
+        .lab-card:hover { transform: translateY(-5px); border-color: var(--accent); background: rgba(74, 222, 128, 0.1); }
+
+        /* Modal (Ro'yxatdan o'tish) */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #1e293b; padding: 30px; border-radius: 20px; border: 1px solid var(--accent);
+            width: 350px; text-align: center;
+        }
+        .modal-content input {
+            width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155;
+            background: #0f172a; color: white;
         }
 
-        .lab-card:hover {
-            border-color: var(--accent-green);
-            background: rgba(74, 222, 128, 0.1);
-            transform: translateY(-8px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        .lab-card span { display: block; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem; }
-        .lab-card small { color: var(--accent-blue); font-size: 0.85rem; }
+        .dev-footer { margin-top: auto; padding: 15px; background: rgba(74, 222, 128, 0.1); border-radius: 10px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="user-section">
+        <div class="user-box">
             <i class="fas fa-user-circle user-icon"></i>
-            <p style="margin: 10px 0;">Foydalanuvchi</p>
-            <a href="#" class="btn-reg">RO'YXATDAN O'TISH</a>
+            <p id="userName">Foydalanuvchi</p>
+            <button class="reg-btn" onclick="openModal()">RO'YXATDAN O'TISH</button>
         </div>
 
-        <div style="font-size: 0.8rem; color: var(--accent-blue);">
-            <p><i class="fas fa-code-branch"></i> Tizim v2.5</p>
-            <p><i class="fas fa-calendar-alt"></i> 2026-yil</p>
-        </div>
-
-        <div class="dev-info">
-            <h5><i class="fas fa-user-shield"></i> Dasturchi</h5>
-            <p><strong>Nurbek</strong></p>
+        <div class="dev-footer">
+            <p style="color: var(--accent); font-weight: bold;"><i class="fas fa-code"></i> Dasturchi</p>
+            <p>Nurbek</p>
             <p>📞 +998993991630</p>
-            <a href="tel:+998993991630" class="contact-btn">BOG'LANISH <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 
     <div class="main-content">
-        <h1>Ilmiy Fizika Laboratoriyalari</h1>
+        <h1 style="text-align: center; letter-spacing: 5px;">ILMIY FIZIKA LABORATORIYALARI</h1>
         <div class="lab-grid">
-            <!-- Asosiy tahrirlangan laboratoriyalar -->
-            <a href="/lab1" class="lab-card"><span>1-Laboratoriya</span><small>Magnito-Optik Kerr effekti</small></a>
-            <a href="/lab2" class="lab-card"><span>2-Laboratoriya</span><small>Gaz Xromatografiyasi</small></a>
-            <a href="/lab3" class="lab-card"><span>3-Laboratoriya</span><small>Faradey effekti</small></a>
-            <a href="/lab4" class="lab-card"><span>4-Laboratoriya</span><small>NYEM Spektri</small></a>
-            <a href="/lab7" class="lab-card"><span>7-Laboratoriya</span><small>Atom kuch mikroskopiyasi</small></a>
-
-            <!-- Dinamik qolgan laboratoriyalar (5,6 va 8-30) -->
-            <script>
-                const specialLabs = [1, 2, 3, 4, 7];
-                for(let i=1; i<=30; i++) {
-                    if(!specialLabs.includes(i)) {
-                        document.write(`
-                            <a href="/lab${i}" class="lab-card">
-                                <span>${i}-Laboratoriya</span>
-                                <small>Mavzu kiritilmagan</small>
-                            </a>
-                        `);
-                    }
-                }
-            </script>
+            {% for lab in labs %}
+            <a href="/lab{{ lab.id }}" class="lab-card">
+                <span style="display: block; font-weight: bold; margin-bottom: 5px;">{{ lab.id }}-Laboratoriya</span>
+                <small style="color: var(--blue);">{{ lab.title }}</small>
+            </a>
+            {% endfor %}
         </div>
     </div>
 
+    <!-- Ro'yxatdan o'tish Modali -->
+    <div id="regModal" class="modal">
+        <div class="modal-content">
+            <h3>Ro'yxatdan o'tish</h3>
+            <input type="text" id="fullName" placeholder="Ism Familiya Sharif">
+            <input type="tel" id="phoneNum" placeholder="+998 90 123 45 67">
+            <button class="reg-btn" onclick="submitReg()">YUBORISH</button>
+            <button style="background:none; color:#94a3b8; border:none; margin-top:10px; cursor:pointer;" onclick="closeModal()">Yopish</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal() { document.getElementById('regModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('regModal').style.display = 'none'; }
+
+        async function submitReg() {
+            const name = document.getElementById('fullName').value;
+            const tel = document.getElementById('phoneNum').value;
+            
+            if(!name || !tel) return alert("Barcha maydonlarni to'ldiring!");
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({fullname: name, phone: tel})
+            });
+            
+            const result = await response.json();
+            if(result.status === 'success') {
+                document.getElementById('userName').innerText = name;
+                alert("Ro'yxatdan muvaffaqiyatli o'tdingiz!");
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>
