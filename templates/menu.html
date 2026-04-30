@@ -5,86 +5,110 @@
     <title>Onlayn Laboratoriya Markazi</title>
     <style>
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            /* Rasm yorqin ko'rinishi uchun shaffoflikni kamaytirdik (0.3) */
-            background: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.3)), 
-                        url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: rgb(145, 247, 11); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            /* Rasm original ranglarida, tiniq va markazda ochiladi */
+            background-image: url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80');
+            background-size: cover; /* Rasmni ekran bo'ylab to'liq yoyadi */
+            background-position: center; /* Markaziy qismini ko'rsatadi */
+            background-attachment: fixed; /* Ekran aylanganda rasm qimirlamaydi */
+            background-repeat: no-repeat;
+            
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; 
             min-height: 100vh;
-            margin: 0;
+        }
+
+        /* Sarlavha ustidagi qora soya (O'qishga oson bo'lishi uchun) */
+        .overlay {
+            width: 100%;
+            min-height: 100vh;
+            background: rgba(15, 23, 42, 0.4); /* Rasmni faqat 40% qoraytiradi */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 50px;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 40px;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.7);
+            font-size: clamp(1.5rem, 5vw, 3rem); /* Ekran o'lchamiga qarab o'zgaradi */
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
         }
 
         .menu-container { 
             display: grid; 
-            /* Ekran kengligiga qarab 1, 2 yoki 3 ustun bo'ladi */
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px; 
             width: 90%;
-            max-width: 1100px;
-            padding: 20px;
+            max-width: 1200px;
+            padding-bottom: 50px;
         }
 
         .lab-card { 
-            /* Kartochkalarni aniqroq qilish uchun fonni biroz to'qroq qildik */
-            background: rgba(15, 23, 42, 0.85); 
-            backdrop-filter: blur(8px);
-            padding: 30px; 
-            border-radius: 20px; 
-            border: 2px solid rgba(56, 189, 248, 0.5); 
+            background: rgba(255, 255, 255, 0.1); /* Shaffof shisha effekti */
+            backdrop-filter: blur(15px); /* Orqa fonni chiroyli xiralashtirish */
+            -webkit-backdrop-filter: blur(15px);
+            padding: 35px 20px; 
+            border-radius: 24px; 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
             text-decoration: none; 
-            color: rgb(248, 224, 10); 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            color: #ffffff; 
+            transition: all 0.3s ease; 
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         .lab-card:hover { 
-            background: #38bdf8; 
-            color: #0f172a; 
-            transform: translateY(-12px); 
-            border-color: white;
-            box-shadow: 0 15px 45px rgba(56, 189, 248, 0.6);
+            background: rgba(56, 189, 248, 0.9); /* Neon ko'k rang */
+            transform: translateY(-10px); 
+            box-shadow: 0 15px 45px rgba(56, 189, 248, 0.4);
         }
 
-        h1 {
-            margin-bottom: 50px;
-            text-shadow: 3px 3px 15px rgba(0,0,0,0.8);
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .lab-card h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 1.4rem; 
+            color: #ffd700; /* Oltin rang sarlavha uchun */
         }
+        
+        .lab-card:hover h3 { color: #ffffff; }
 
-        h3 { margin-top: 0; font-size: 1.5rem; }
-        p { opacity: 0.9; font-size: 1rem; }
+        .lab-card p { 
+            margin: 0;
+            opacity: 0.9; 
+            font-size: 0.95rem; 
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
-    <h1>Mening Raqamli Laboratoriyalarim</h1>
-    <div class="menu-container">
-        <a href="/lab3" class="lab-card">
-            <h3>3-Laboratoriya ishi</h3>
-            <p>Faradey effekti</p>
-        </a>
-        <a href="/lab4" class="lab-card">
-            <h3>4-Laboratoriya ishi</h3>
-            <p>NYEM Uyg'otish Spektri Tadqiqoti</p>
-        </a>
-        <a href="/lab5" class="lab-card">
-            <h3>5-Laboratoriya ishi</h3>
-            <p>Pikering Seriyasi</p>
-        </a>
-        <a href="/lab6" class="lab-card">
-            <h3>6-Laboratoriya ishi</h3>
-            <p>Nodir yer metallari</p>
-        </a>
+    <div class="overlay">
+        <h1>Mening Raqamli Laboratoriyalarim</h1>
+        <div class="menu-container">
+            <a href="/lab3" class="lab-card">
+                <h3>3-Laboratoriya</h3>
+                <p>Faradey effekti</p>
+            </a>
+            <a href="/lab4" class="lab-card">
+                <h3>4-Laboratoriya</h3>
+                <p>NYEM Uyg'otish Spektri</p>
+            </a>
+            <a href="/lab5" class="lab-card">
+                <h3>5-Laboratoriya</h3>
+                <p>Pikering Seriyasi</p>
+            </a>
+            <a href="/lab6" class="lab-card">
+                <h3>6-Laboratoriya</h3>
+                <p>Nodir yer metallari</p>
+            </a>
+        </div>
     </div>
 </body>
 </html>
