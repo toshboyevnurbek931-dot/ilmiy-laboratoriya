@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Kerr Effekti - Ilmiy Tadqiqot Laboratoriyasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --lab-blue: #0a2540;
+            --science-gold: #c19a6b;
+            --glass: rgba(255, 255, 255, 0.9);
+            --danger: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Navigatsiya va Header */
+        .header {
+            background: var(--lab-blue);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr 300px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Bloklar uslubi */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+        }
+
+        h3 { color: var(--lab-blue); border-bottom: 2px solid var(--science-gold); padding-bottom: 8px; margin-top: 0; }
+
+        /* Nazariya bloki */
+        .theory-box {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            background: #fffcf0;
+            padding: 10px;
+            border-left: 4px solid var(--science-gold);
+        }
+
+        /* Boshqaruv elementlari */
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+
+        /* Vizualizatsiya maydoni */
+        .viz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .optical-bench {
+            height: 200px;
+            background: #111;
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            overflow: hidden;
+        }
+
+        .laser-beam {
+            position: absolute;
+            height: 4px;
+            background: rgba(255, 0, 0, 0.8);
+            box-shadow: 0 0 15px red;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* Jadval uslubi */
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: var(--lab-blue); color: white; }
+
+        .btn-run {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-run:hover { background: #047857; }
+
+        .kerr-cell {
+            width: 80px;
+            height: 60px;
+            border: 2px solid #aaa;
+            background: rgba(173, 216, 230, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h2 style="margin:0;">Kerr Elektro-Optik Effekt Laboratoriyasi</h2>
+        <small>Operator: Toshboyev Nurbek | Akademik Simulyatsiya</small>
+    </div>
+    <div id="status">STATUS: STANDBY</div>
+</div>
+
+<div class="main-layout">
+    <!-- Chap panel: Nazariya va Kirish -->
+    <div class="card">
+        <h3>1. Nazariya va Namunalar</h3>
+        <div class="theory-box">
+            Asosiy formula:
+            $$\Delta n = \lambda K E^2$$
+            Bu yerda: <br>
+            \(K\) - Kerr doimiysi, \(E\) - Elektr maydon kuchlanganligi.
+        </div>
+        <br>
+        <div class="control-group">
+            <label>Namuna Moddani Tanlang:</label>
+            <select id="substance" onchange="updateSubstance()">
+                <option value="nitrobenzene">Nitrobenzol (C6H5NO2)</option>
+                <option value="water">Suv (H2O)</option>
+                <option value="nitrotoluene">Nitrotoluol</option>
+                <option value="custom">Maxsus (User Defined)</option>
+            </select>
+        </div>
+        
+        <div id="customParams" style="display:none;">
+            <div class="control-group">
+                <label>Maxsus Kerr doimiysi (m/V²):</label>
+                <input type="number" id="customK" value="4.4e-12">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Elektr Maydon (kV/m):</label>
+            <input type="range" id="voltage" min="0" max="30000" step="100" value="0" oninput="calculate()">
+            <span id="vVal">0 kV/m</span>
+        </div>
+
+        <div class="control-group">
+            <label>Lazer To'lqin Uzunligi (nm):</label>
+            <input type="number" id="lambda" value="632.8">
+        </div>
+
+        <button class="btn-run" onclick="runExperiment()">EKSPERIMENTNI BOSHLASH</button>
+    </div>
+
+    <!-- Markaziy panel: Vizualizatsiya va Grafik -->
+    <div class="viz-container">
+        <div class="card" style="flex: 0;">
+            <h3>2. Optik Qurilma Ko'rinishi</h3>
+            <div class="optical-bench">
+                <div style="color:white; position:absolute; left:10px;">Lazer</div>
+                <div class="laser-beam" id="beam"></div>
+                <div class="kerr-cell" id="cell">
+                    <div style="font-size:10px; text-align:center; margin-top:20px;">Kerr Cell</div>
+                </div>
+                <div style="color:white; position:absolute; right:10px;">Detektor</div>
+            </div>
+        </div>
+
+        <div class="card" style="flex: 1;">
+            <h3>3. Dinamik Grafik (Δn vs E²)</h3>
+            <canvas id="kerrChart"></canvas>
+        </div>
+    </div>
+
+    <!-- O'ng panel: Natijalar Jadvali -->
+    <div class="card">
+        <h3>4. Hisobiy Natijalar</h3>
+        <table id="resTable">
+            <thead>
+                <tr>
+                    <th>E² (V/m)²</th>
+                    <th>Δn (x10⁻⁶)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dinamik qo'shiladi -->
+            </tbody>
+        </table>
+        <br>
+        <div class="theory-box" style="background:#e0f2fe; border-color:#0ea5e9;">
+            <strong>Xulosa:</strong> <br>
+            <span id="conclusion">Modda tanlang va maydonni o'zgartiring.</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let kerrChart;
+    const substances = {
+        nitrobenzene: { k: 4.4e-12, name: "Nitrobenzol" },
+        water: { k: 9.4e-14, name: "Suv" },
+        nitrotoluene: { k: 1.2e-12, name: "Nitrotoluol" }
+    };
+
+    function updateSubstance() {
+        const val = document.getElementById('substance').value;
+        document.getElementById('customParams').style.display = (val === 'custom') ? 'block' : 'none';
+        calculate();
+    }
+
+    function calculate() {
+        const E = parseFloat(document.getElementById('voltage').value);
+        const L = parseFloat(document.getElementById('lambda').value) * 1e-9;
+        let K;
+
+        if(document.getElementById('substance').value === 'custom') {
+            K = parseFloat(document.getElementById('customK').value);
+        } else {
+            K = substances[document.getElementById('substance').value].k;
+        }
+
+        const deltaN = L * K * Math.pow(E, 2);
+        
+        document.getElementById('vVal').innerText = (E/1000).toFixed(1) + " kV/m";
+        
+        // Beam intensivligini simulyatsiya qilish
+        const intensity = Math.min(1, (deltaN * 1e6) / 2);
+        document.getElementById('beam').style.opacity = 0.2 + (intensity * 0.8);
+        document.getElementById('beam').style.height = (4 + intensity * 6) + "px";
+
+        return { E, deltaN, K };
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('kerrChart').getContext('2d');
+        kerrChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Δn (Sinish ko\'rsatkichi o\'zgarishi)',
+                    data: [],
+                    borderColor: '#c19a6b',
+                    backgroundColor: '#0a2540',
+                    showLine: true
+                }]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: 'E² (Elektr maydon kvadrati)' } },
+                    y: { title: { display: true, text: 'Δn' } }
+                }
+            }
+        });
+    }
+
+    function runExperiment() {
+        const tableBody = document.querySelector('#resTable tbody');
+        tableBody.innerHTML = "";
+        kerrChart.data.datasets[0].data = [];
+        
+        document.getElementById('status').innerText = "STATUS: ANALYZING...";
+        document.getElementById('status').style.color = "orange";
+
+        let steps = 0;
+        let interval = setInterval(() => {
+            const E_val = steps * 3000; // 0 dan 30kV gacha qadamlar
+            const L = parseFloat(document.getElementById('lambda').value) * 1e-9;
+            let K;
+            if(document.getElementById('substance').value === 'custom') {
+                K = parseFloat(document.getElementById('customK').value);
+            } else {
+                K = substances[document.getElementById('substance').value].k;
+            }
+
+            const dn = L * K * Math.pow(E_val, 2);
+            
+            // Jadvalga qo'shish
+            const row = `<tr><td>${(E_val**2).toExponential(2)}</td><td>${(dn*1e6).toFixed(4)}</td></tr>`;
+            tableBody.innerHTML += row;
+
+            // Grafikni yangilash
+            kerrChart.data.datasets[0].data.push({x: E_val**2, y: dn});
+            kerrChart.update();
+
+            steps++;
+            if(steps > 10) {
+                clearInterval(interval);
+                document.getElementById('status').innerText = "STATUS: COMPLETED";
+                document.getElementById('status').style.color = "#22c55e";
+                document.getElementById('conclusion').innerText = `Kerr doimiysi ${K.toExponential(2)} bo'lgan moddada kvadratik bog'liqlik tasdiqlandi.`;
+            }
+        }, 200);
+    }
+
+    window.onload = () => {
+        initChart();
+        updateSubstance();
+    };
+</script>
+
+</body>
+</html>
