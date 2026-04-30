@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SZM SOLVER NEXT - Virtual Lab</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #e67e22; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        header { background: var(--primary); color: white; padding: 1rem; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .main-container { display: grid; grid-template-columns: 350px 1fr 300px; gap: 15px; padding: 15px; flex-grow: 1; overflow: hidden; }
+
+        /* Panel Styles */
+        .panel { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .panel h3 { border-bottom: 2px solid var(--accent); padding-bottom: 5px; margin-top: 0; color: var(--primary); }
+
+        /* Device Animation Area */
+        .device-view { position: relative; height: 300px; background: #eee; border-radius: 8px; border: 1px solid #ccc; overflow: hidden; margin-bottom: 15px; }
+        .cantilever { position: absolute; width: 120px; height: 10px; background: #95a5a6; top: 100px; left: 50px; transform-origin: left center; transition: 0.1s; z-index: 5; }
+        .tip { position: absolute; right: 0; bottom: -15px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 15px solid #34495e; }
+        .sample { position: absolute; width: 200px; height: 40px; background: #d35400; bottom: 50px; left: 100px; border-radius: 4px; transition: 0.5s; }
+        .laser { position: absolute; width: 2px; height: 100px; background: rgba(255, 0, 0, 0.6); top: 0; left: 165px; transform-origin: bottom; z-index: 4; }
+
+        /* Controls */
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
+        select, input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; }
+        .btn { cursor: pointer; padding: 10px; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s; width: 100%; margin-bottom: 5px; }
+        .btn-run { background: #27ae60; color: white; }
+        .btn-stop { background: #c0392b; color: white; }
+
+        /* Result Area */
+        .scan-window { background: #000; height: 250px; display: grid; grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(20, 1fr); gap: 1px; padding: 2px; }
+        .pixel { background: #1a1a1a; width: 100%; height: 100%; }
+        
+        .microscope-image { width: 100%; border-radius: 5px; margin-top: 10px; display: none; }
+        #chart-container { height: 150px; background: #fff; margin-top: 10px; border: 1px solid #ddd; position: relative; }
+        .data-point { position: absolute; bottom: 0; width: 2px; background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>SOLVER NEXT: Skanlovchi Zondli Mikroskop Laboratoriyasi</h2>
+</header>
+
+<div class="main-container">
+    <!-- Chap panel: Sozlamalar -->
+    <div class="panel">
+        <h3>Boshqaruv Paneli</h3>
+        <div class="control-group">
+            <label>Namuna Tanlash:</label>
+            <select id="sampleType" onchange="changeSample()">
+                <option value="gold">Oltin Nanozarrachalari (Au)</option>
+                <option value="graphite">Grafit (HOPG)</option>
+                <option value="dna">DNK Molekulasi</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Ish Rejimi (Mode):</label>
+            <select id="mode">
+                <option value="contact">Kontaktli</option>
+                <option value="semi">Yarim kontaktli</option>
+                <option value="non">Kontaktsiz</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>SetPoint (nA/V): <span id="val-sp">0.5</span></label>
+            <input type="range" min="0.1" max="2" step="0.1" value="0.5" oninput="document.getElementById('val-sp').innerText=this.value">
+        </div>
+        <div class="control-group">
+            <label>Skan tezligi (Hz):</label>
+            <input type="number" value="1" min="0.5" max="5" id="speed">
+        </div>
+        <button class="btn btn-run" onclick="startScan()">Skanlashni Boshlash (Run)</button>
+        <button class="btn btn-stop" onclick="stopScan()">To'xtatish</button>
+        
+        <div style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+            <b>Qurilma haqida:</b> SOLVER NEXT atom-kuch va skanlovchi tunnelli mikroskopiya rejimlarini birlashtiradi.
+        </div>
+    </div>
+
+    <!-- Markaziy panel: Animatsiya va Skan -->
+    <div class="panel">
+        <h3>Real-vaqtda Skanlash</h3>
+        <div class="device-view">
+            <div class="laser" id="laserLine"></div>
+            <div class="cantilever" id="probe">
+                <div class="tip"></div>
+            </div>
+            <div class="sample" id="sampleObj"></div>
+        </div>
+        
+        <label>Skan natijasi (2D Morfologiya):</label>
+        <div class="scan-window" id="scanGrid"></div>
+    </div>
+
+    <!-- O'ng panel: Natijalar -->
+    <div class="panel">
+        <h3>Tahlil va Tasvirlar</h3>
+        <label>Atom Darajasidagi Tasvir:</label>
+        <!-- Mikroskop rasmlari taqdimotdan olingan tasvirlar asosida simulyatsiya qilinadi -->
+        <img id="resultImg" class="microscope-image" src="https://www.ntmdt-si.com/media/2436/sem_afm_integration.jpg" alt="AFM Result">
+        
+        <label>Profil (Z-o'lchami):</label>
+        <div id="chart-container"></div>
+        
+        <table style="width: 100%; font-size: 0.8rem; margin-top: 15px; border-collapse: collapse;" border="1">
+            <tr style="background: #eee;"><th>Parametr</th><th>Qiymat</th></tr>
+            <tr><td>Z-balandlik</td><td id="res-z">0.0 nm</td></tr>
+            <tr><td>G'adir-budurlik</td><td id="res-r">0.12 nm</td></tr>
+            <tr><td>Skan maydoni</td><td>1.0 x 1.0 µm</td></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    let scanning = false;
+    let scanInterval;
+    const probe = document.getElementById('probe');
+    const laser = document.getElementById('laserLine');
+    const grid = document.getElementById('scanGrid');
+    const chart = document.getElementById('chart-container');
+
+    // Grid yaratish
+    for(let i=0; i<400; i++) {
+        const p = document.createElement('div');
+        p.className = 'pixel';
+        grid.appendChild(p);
+    }
+
+    function changeSample() {
+        const type = document.getElementById('sampleType').value;
+        const obj = document.getElementById('sampleObj');
+        if(type === 'gold') obj.style.background = '#f1c40f';
+        else if(type === 'graphite') obj.style.background = '#2c3e50';
+        else obj.style.background = '#9b59b6';
+        stopScan();
+        resetGrid();
+    }
+
+    function resetGrid() {
+        document.querySelectorAll('.pixel').forEach(p => p.style.background = '#1a1a1a');
+        chart.innerHTML = '';
+        document.getElementById('resultImg').style.display = 'none';
+    }
+
+    function startScan() {
+        if(scanning) return;
+        scanning = true;
+        resetGrid();
+        let pos = 0;
+        const pixels = document.querySelectorAll('.pixel');
+        const mode = document.getElementById('mode').value;
+
+        scanInterval = setInterval(() => {
+            if(pos >= pixels.length) {
+                stopScan();
+                document.getElementById('resultImg').style.display = 'block';
+                return;
+            }
+
+            // Animatsiya mantiqi
+            let noise = Math.random() * 5;
+            let vibration = mode === 'semi' ? Math.sin(Date.now()/50) * 10 : 0;
+            
+            probe.style.transform = `translateX(${Math.sin(pos/10)*20}px) translateY(${vibration}px)`;
+            laser.style.transform = `rotate(${Math.sin(pos/10)*2}deg)`;
+
+            // Rang berish (balandlikka qarab)
+            let colorVal = Math.floor(Math.random() * 155) + 100;
+            pixels[pos].style.background = `rgb(${colorVal}, ${colorVal/2}, 0)`;
+
+            // Grafik chizish
+            const bar = document.createElement('div');
+            bar.className = 'data-point';
+            bar.style.left = (pos % 100) + '%';
+            bar.style.height = (colorVal / 3) + 'px';
+            if(chart.children.length > 50) chart.removeChild(chart.firstChild);
+            chart.appendChild(bar);
+
+            document.getElementById('res-z').innerText = (colorVal/10).toFixed(2) + " nm";
+            
+            pos++;
+        }, 50);
+    }
+
+    function stopScan() {
+        clearInterval(scanInterval);
+        scanning = false;
+    }
+</script>
+
+</body>
+</html>
