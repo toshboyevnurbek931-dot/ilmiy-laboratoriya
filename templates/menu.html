@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Ilmiy Fizika Laboratoriyalari</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary-bg: #020617;
-            --accent-blue: #38bdf8;
-            --gold: #fbbf24;
-            --glass: rgba(255, 255, 255, 0.1);
+            --accent-green: #4ade80; /* Och yashil */
+            --accent-blue: #38bdf8;  /* Och ko'k */
+            --glass: rgba(255, 255, 255, 0.08);
+            --sidebar-bg: rgba(15, 23, 42, 0.98);
         }
 
         body {
@@ -18,140 +20,162 @@
             background: url('https://img.freepik.com/free-vector/cartoon-laboratory-room-illustration_23-2148904064.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
+            color: white;
         }
 
-        /* Chap tomondagi Sidebar */
+        /* Sidebar Dizayni */
         .sidebar {
-            width: 280px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
+            width: 260px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(15px);
             height: 100vh;
             position: fixed;
-            left: 0;
-            top: 0;
+            left: 0; top: 0;
             display: flex;
             flex-direction: column;
-            padding: 30px 20px;
-            border-right: 1px solid var(--accent-blue);
+            padding: 25px;
+            border-right: 1px solid var(--accent-green);
             z-index: 100;
         }
 
-        .profile-box {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--gold);
+        /* User Profile qismi */
+        .user-section {
             text-align: center;
-            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+            margin-bottom: 25px;
         }
 
-        .profile-box h4 { color: var(--gold); margin: 0 0 10px 0; }
-        .profile-box p { color: #fff; font-size: 0.9rem; margin: 5px 0; }
-        .contact-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 15px;
-            background: var(--gold);
-            color: #000;
+        .user-icon {
+            font-size: 50px;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .btn-reg {
+            display: block;
+            background: var(--accent-green);
+            color: #064e3b;
             text-decoration: none;
-            border-radius: 5px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-reg:hover { background: var(--accent-blue); color: #fff; }
+
+        /* Dasturchi ma'lumotlari */
+        .dev-info {
+            margin-top: auto;
+            background: rgba(74, 222, 128, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .dev-info h5 { margin: 0 0 8px 0; color: var(--accent-green); }
+        .dev-info p { font-size: 0.85rem; margin: 4px 0; color: #cbd5e1; }
+        
+        .contact-btn {
+            display: inline-block;
+            margin-top: 8px;
+            color: var(--accent-blue);
+            text-decoration: none;
             font-weight: bold;
             font-size: 0.8rem;
         }
 
         /* Markaziy qism */
         .main-content {
-            margin-left: 280px; /* Sidebar kengligi uchun joy */
-            width: calc(100% - 280px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 50px;
-            background: rgba(2, 6, 23, 0.4);
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            padding: 40px;
+            background: rgba(2, 6, 23, 0.6);
+            min-height: 100vh;
         }
 
         h1 {
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 2px 2px 15px rgba(0,0,0,0.8);
-            margin-bottom: 40px;
             text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
         }
 
         .lab-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            width: 90%;
-            max-width: 1200px;
-            padding-bottom: 50px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
         .lab-card {
             background: var(--glass);
-            backdrop-filter: blur(8px);
+            border: 1px solid rgba(74, 222, 128, 0.2);
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 15px;
             text-decoration: none;
-            color: #fff;
+            color: white;
+            transition: 0.4s;
             text-align: center;
-            transition: 0.3s;
         }
 
         .lab-card:hover {
-            transform: translateY(-5px);
-            background: var(--accent-blue);
-            color: #000;
+            border-color: var(--accent-green);
+            background: rgba(74, 222, 128, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        .lab-card span { font-weight: bold; display: block; margin-bottom: 5px; }
-        .lab-card small { opacity: 0.8; font-size: 0.8rem; }
+        .lab-card span { display: block; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem; }
+        .lab-card small { color: var(--accent-blue); font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
-    <!-- Chap burchakdagi profil -->
     <div class="sidebar">
-        <div class="profile-box">
-            <h4>Dasturchi</h4>
+        <div class="user-section">
+            <i class="fas fa-user-circle user-icon"></i>
+            <p style="margin: 10px 0;">Foydalanuvchi</p>
+            <a href="#" class="btn-reg">RO'YXATDAN O'TISH</a>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--accent-blue);">
+            <p><i class="fas fa-code-branch"></i> Tizim v2.5</p>
+            <p><i class="fas fa-calendar-alt"></i> 2026-yil</p>
+        </div>
+
+        <div class="dev-info">
+            <h5><i class="fas fa-user-shield"></i> Dasturchi</h5>
             <p><strong>Nurbek</strong></p>
             <p>📞 +998993991630</p>
-            <a href="tel:+998993991630" class="contact-link">BOG'LANISH</a>
-        </div>
-        <div style="color: var(--accent-blue); font-size: 0.8rem; text-align: center;">
-            Tizim versiyasi: 2.0<br>
-            © 2026 Ilmiy Lab
+            <a href="tel:+998993991630" class="contact-btn">BOG'LANISH <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
 
-    <!-- Asosiy menyu -->
     <div class="main-content">
-        <h1>Ilmiy Fizika Laboratoryalari</h1>
-        
+        <h1>Ilmiy Fizika Laboratoriyalari</h1>
         <div class="lab-grid">
-            <!-- 30 ta laboratoriya yaratish -->
-            <a href="/lab1" class="lab-card"><span>1-Laboratoriya</span><small>Magnito-Optik effekt Kerr effekti </small></a>
+            <!-- Asosiy tahrirlangan laboratoriyalar -->
+            <a href="/lab1" class="lab-card"><span>1-Laboratoriya</span><small>Magnito-Optik Kerr effekti</small></a>
             <a href="/lab2" class="lab-card"><span>2-Laboratoriya</span><small>Gaz Xromatografiyasi</small></a>
             <a href="/lab3" class="lab-card"><span>3-Laboratoriya</span><small>Faradey effekti</small></a>
             <a href="/lab4" class="lab-card"><span>4-Laboratoriya</span><small>NYEM Spektri</small></a>
-            <a href="/lab5" class="lab-card"><span>5-Laboratoriya</span><small>Pikering Seriyasi</small></a>
-            <a href="/lab6" class="lab-card"><span>6-Laboratoriya</span><small>Nodir yer metallari</small></a>
-            <a href="/lab7" class="lab-card"><span>7-Laboratoriya</span><small>Atom kuch mikroskopiyasi (AFM)</small></a>
-            <a href="/lab8" class="lab-card"><span>8-Laboratoriya</span><small></small>Mavzu kiritilmagan</a>
-            <a href="/lab9" class="lab-card"><span>9-Laboratoriya</span><small>Mavzu kiritilmagan</small></a>
-            <a href="/lab10" class="lab-card"><span>10-Laboratoriya</span><small>Mavzu kiritilmagan</small></a>
-            
-            <!-- Qolgan laboratoriyalar uchun namunaviy joylar (7 dan 30 gacha) -->
+            <a href="/lab7" class="lab-card"><span>7-Laboratoriya</span><small>Atom kuch mikroskopiyasi</small></a>
+
+            <!-- Dinamik qolgan laboratoriyalar (5,6 va 8-30) -->
             <script>
-                for(let i=7; i<=30; i++) {
-                    document.write(`
-                        <a href="/lab${i}" class="lab-card">
-                            <span>${i}-Laboratoriya</span>
-                            <small>Mavzu kiritilmagan</small>
-                        </a>
-                    `);
+                const specialLabs = [1, 2, 3, 4, 7];
+                for(let i=1; i<=30; i++) {
+                    if(!specialLabs.includes(i)) {
+                        document.write(`
+                            <a href="/lab${i}" class="lab-card">
+                                <span>${i}-Laboratoriya</span>
+                                <small>Mavzu kiritilmagan</small>
+                            </a>
+                        `);
+                    }
                 }
             </script>
         </div>
